@@ -1,0 +1,6 @@
+testMode: assertion
+corpusDir: corpus
+testLimit: 1000000
+cryticArgs: ['--solc-remaps', '@=node_modules/@']
+filterBlacklist: false
+filterFunctions: ["DemNftEchidna.transferAndCheck(uint256)"]
