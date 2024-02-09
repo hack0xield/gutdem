@@ -96,7 +96,7 @@ contract PreSaleFacet is Modifiers {
             "SaleFacet: Exceeded maximum DemRebels supply"
         );
         require(
-            rebelsCount_ + s.ownerTokenIds[msg.sender].length <=
+            rebelsCount_ + s.balances[msg.sender] <=
                 s.maxDemRebelsSalePerUser,
             "SaleFacet: Exceeded maximum DemRebels per user"
         );

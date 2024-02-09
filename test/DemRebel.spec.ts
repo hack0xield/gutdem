@@ -79,33 +79,27 @@ describe("DemRebel test", async () => {
     const address1 = await account1.getAddress();
     const address2 = await account2.getAddress();
 
+    const fixedDemRebel = demRebel.totalSupply();
     await helpers.purchaseRebels(preSaleFacet, account1, 1);
 
-    let tokenIds = await demRebel.connect(account1).tokenIdsOfOwner(address1);
+    let balance = await demRebel.connect(account1).balanceOf(address1);
     assert.isAtLeast(
-      tokenIds.length,
+      balance,
       1,
       "error: must be at least one demRebel",
     );
 
-    const fixedDemRebel = tokenIds[0];
     const tx = await demRebel
       .connect(account1)
       .transferFrom(address1, address2, fixedDemRebel);
     const status = (await tx.wait()).status;
     assert.equal(status, true, "demRebel should be transferred");
 
-    tokenIds = await demRebel.connect(account2).tokenIdsOfOwner(address2);
-    assert.isAtLeast(tokenIds.length, 1, "should be at least one demRebel");
+    balance = await demRebel.connect(account2).balanceOf(address2);
+    assert.isAtLeast(balance, 1, "should be at least one demRebel");
 
-    let f = false;
-    for (const token of tokenIds) {
-      if (token == fixedDemRebel) {
-        f = true;
-        break;
-      }
-    }
-    assert.isTrue(f);
+    assert( await demRebel.ownerOf(fixedDemRebel) != address1 );
+    assert( await demRebel.ownerOf(fixedDemRebel) == address2 );
   });
 
   it("Should get token URI", async () => {

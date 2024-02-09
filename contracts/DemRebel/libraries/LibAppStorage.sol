@@ -27,8 +27,7 @@ struct AppStorage {
     BitMaps.BitMap wlBitMap;
 
     mapping(uint256 => DemRebelData) demRebels;
-    mapping(address => uint256[]) ownerTokenIds;
-    mapping(address => mapping(uint256 => uint256)) ownerTokenIdIndexes;
+    mapping(address => uint256) balances;
     mapping(uint256 => address) approved;
     mapping(address => mapping(address => bool)) operators;
     mapping(string => bool) demRebelNamesUsed;

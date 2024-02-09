@@ -76,7 +76,7 @@ contract DemRebel is Modifiers {
     /// @param owner_ An address for whom to query the balance
     /// @return The number of NFTs owned by `_owner`, possibly zero
     function balanceOf(address owner_) external view returns (uint256) {
-        return s.ownerTokenIds[owner_].length;
+        return s.balances[owner_];
     }
 
     /// @notice Enumerate valid NFTs
@@ -90,46 +90,6 @@ contract DemRebel is Modifiers {
             "DemRebel: Rebel owner can't be address(0)"
         );
         return index_;
-    }
-
-    /// @notice Enumerate NFTs assigned to an owner
-    /// @dev Throws if `index_` >= `balanceOf(owner_)` or if
-    ///  `owner_` is the zero address, representing invalid NFTs.
-    /// @param owner_ An address where we are interested in NFTs owned by them
-    /// @param index_ A counter less than `balanceOf(owner_)`
-    /// @return The token identifier for the `index_`th NFT assigned to `owner_`,
-    ///   (sort order not specified)
-    function tokenOfOwnerByIndex(
-        address owner_,
-        uint256 index_
-    ) external view returns (uint256) {
-        require(
-            index_ < s.ownerTokenIds[owner_].length,
-            "DemRebel: index beyond owner balance"
-        );
-        return s.ownerTokenIds[owner_][index_];
-    }
-
-    /// @notice Get all the Ids of NFTs owned by an address
-    /// @param owner_ The address to check for the NFTs
-    /// @return an array of tokenId for each NFT
-    function tokenIdsOfOwner(
-        address owner_
-    ) external view returns (uint256[] memory) {
-        return s.ownerTokenIds[owner_];
-    }
-
-    /// @notice Get all details about all the NFTs owned by an address
-    /// @param owner_ The address to check for the NFTs
-    /// @return demRebels an array of structs,where each struct contains all the details of each NFT
-    function getRebelsOfOwner(
-        address owner_
-    ) external view returns (DemRebelData[] memory demRebels) {
-        uint256 length = s.ownerTokenIds[owner_].length;
-        demRebels = new DemRebelData[](length);
-        for (uint256 i; i < length; i++) {
-            demRebels[i] = LibDemRebel.getDemRebel(s.ownerTokenIds[owner_][i]);
-        }
     }
 
     /// @notice Get all details about NFT by id

@@ -51,38 +51,19 @@ library LibDemRebel {
         address oldOwner = s.demRebels[id_].owner;
 
         s.demRebels[id_].owner = newOwner_;
-        removeIndex(id_, oldOwner);
-        addIndex(id_, newOwner_);
+        updateBalances(oldOwner, newOwner_);
 
         emit LibERC721.Transfer(oldOwner, newOwner_, id_);
     }
 
-    function removeIndex(uint256 tokenId_, address from_) internal {
-        if (from_ != address(0)) {
-            AppStorage storage s = LibAppStorage.diamondStorage();
-            uint256[] storage ownerTokenIdsFrom = s.ownerTokenIds[from_];
-            mapping(uint256 => uint256) storage ownerTokenIdIndexesFrom = s
-                .ownerTokenIdIndexes[from_];
+    function updateBalances(address from, address to) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
 
-            uint256 index = ownerTokenIdIndexesFrom[tokenId_];
-            uint256 lastIndex = ownerTokenIdsFrom.length - 1;
-            if (index != lastIndex) {
-                uint256 lastTokenId = ownerTokenIdsFrom[lastIndex];
-                ownerTokenIdsFrom[index] = lastTokenId;
-                ownerTokenIdIndexesFrom[lastTokenId] = index;
-            }
-            ownerTokenIdsFrom.pop();
-            delete ownerTokenIdIndexesFrom[tokenId_];
+        if (from != address(0)) {
+            s.balances[from] -= 1;
         }
-    }
-
-    function addIndex(uint256 tokenId_, address to_) internal {
-        if (to_ != address(0)) {
-            AppStorage storage s = LibAppStorage.diamondStorage();
-            uint256[] storage ownerTokenIds = s.ownerTokenIds[to_];
-
-            s.ownerTokenIdIndexes[to_][tokenId_] = ownerTokenIds.length;
-            ownerTokenIds.push(tokenId_);
+        if (to != address(0)) {
+            s.balances[to] += 1;
         }
     }
 
