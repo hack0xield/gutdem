@@ -33,11 +33,15 @@ contract RebelFarm is Modifiers {
         LibRebelFarm.addToddlers(id_, toddlerIds_);
 
         LibRebelFarm.updateHarvestTimestamp(id_);
-        LibRebelFarm.addToTierIndex(id_, s.farmTier[id_]);
+        LibRebelFarm.addToTierIndex(id_, 1);
     }
 
     // Burn token and return founds. Need approve for Game.
     function stopAndBurn(uint256 id_) external {
+        // TODO farmTier -> deactivate
+        // removeFromTierIndex
+        // check if released growers/toddlers
+
         address owner = IERC721(s.demRebelAddress).ownerOf(id_);
         IERC721(s.demRebelAddress).transferFrom(owner, address(0), id_);
 
@@ -79,7 +83,8 @@ contract RebelFarm is Modifiers {
     function increaseTier(
         uint24 id_
     ) external onlyDemRebelOwner(id_) onlyActiveFarm(id_) {
-        require(s.farmTier[id_] < s.farmMaxTier, "RebelFarm: Exceeds max tier");
+        uint256 currentTier = s.farmTier[id_];
+        require(currentTier < s.farmMaxTier, "RebelFarm: Exceeds max tier");
         require(
             LibRebelFarm.farmUpgradeCooldown(id_) == 0,
             "RebelFarm: Upgrade cooldown"
@@ -87,12 +92,12 @@ contract RebelFarm is Modifiers {
 
         LibRebelFarm.payFromSafe(
             id_,
-            LibFarmCalc.upgradeCost(s.farmTier[id_] + 1)
+            LibFarmCalc.upgradeCost(currentTier + 1)
         );
 
         LibRebelFarm.updateHarvestStock(id_);
-        LibRebelFarm.removeFromTierIndex(id_, s.farmTier[id_]);
-        LibRebelFarm.addToTierIndex(id_, s.farmTier[id_] + 1);
+        LibRebelFarm.removeFromTierIndex(id_, currentTier);
+        LibRebelFarm.addToTierIndex(id_, currentTier + 1);
 
         s.farmTier[id_] += 1;
         s.farmUpgradeTime[id_] = block.timestamp;
