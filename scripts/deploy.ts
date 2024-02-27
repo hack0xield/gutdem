@@ -20,7 +20,12 @@ export async function main(
 
   const dbnAddress = await demBaconDeploy();
   const safeAddress = await deploySafe();
-  let growerAddress, toddlerAddress, demRebelAddress, gameAddress, linkAddress;
+  let kidosAddress,
+    growerAddress,
+    toddlerAddress,
+    demRebelAddress,
+    gameAddress,
+    linkAddress;
   if (isRoot) {
     //await deployModeRoot();
   } else {
@@ -33,6 +38,7 @@ export async function main(
     demBacon: dbnAddress,
     demRebel: demRebelAddress,
     game: gameAddress,
+    kidos: kidosAddress,
     growerDemNft: growerAddress,
     toddlerDemNft: toddlerAddress,
     safe: safeAddress,
@@ -78,6 +84,7 @@ export async function main(
 
   async function deployModeChild() {
     const [
+      demKidosArgs,
       growerNftArgs,
       growerSaleArgs,
       toddlerNftArgs,
@@ -90,6 +97,7 @@ export async function main(
       farmRaidArgs,
       VRFConsumerArgs,
     ] = await deployFacets(
+      "DemKidos",
       "DemNft",
       "SaleFacet",
       "DemNft",
@@ -103,6 +111,19 @@ export async function main(
       "VRFConsumer",
     );
 
+    kidosAddress = await deployDiamond(
+      "Kidos",
+      "contracts/DemKidos/InitDiamond.sol:InitDiamond",
+      [demKidosArgs],
+      [
+        [
+          cfg.toddlerNftName,
+          cfg.toddlerNftSymbol,
+          cfg.toddlerNftMax,
+          cfg.toddlerNftImage,
+        ],
+      ],
+    );
     growerAddress = await deployDiamond(
       "Grower DemNft",
       "contracts/DemNft/InitDiamond.sol:InitDiamond",
@@ -208,7 +229,11 @@ export async function main(
         const tx = await (
           await gameFacet.connect(accounts[0]).configureBlastYield()
         ).wait();
-        LOG(`>> gameFacet configureBlastYield gas used: ${strDisplay(tx.gasUsed)}`);
+        LOG(
+          `>> gameFacet configureBlastYield gas used: ${strDisplay(
+            tx.gasUsed,
+          )}`,
+        );
         totalGasUsed += tx.gasUsed;
       }
     }
@@ -467,6 +492,7 @@ export class DeployedContracts {
   public demBacon: string = "";
   public demRebel: string = "";
   public game: string = "";
+  public kidos: string = "";
   public growerDemNft: string = "";
   public toddlerDemNft: string = "";
   public safe: string = "";
