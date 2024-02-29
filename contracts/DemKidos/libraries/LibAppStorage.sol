@@ -2,22 +2,19 @@
 pragma solidity 0.8.20;
 
 import {LibDiamond} from "../../shared/diamond/lib/LibDiamond.sol";
+import {DoubleEndedQueue} from "./DoubleEndedQueue.sol";
 
 struct AppStorage {
     address rewardManager;
 
-    // Metadata
-    /// @dev Token name
     string name;
-
-    /// @dev Token symbol
     string symbol;
+    string tokenUri;
 
-    /// @dev Current mint counter, monotonically increasing to ensure accurate ownership
+    uint256 totalSupply;
     uint256 minted;
 
-    uint256 totalNativeSupply;
-    string tokenUri;
+    DoubleEndedQueue.Uint256Deque storedERC721Ids;
 
     // Mappings
     /// @dev Balance of user in fractional representation
@@ -32,14 +29,14 @@ struct AppStorage {
     /// @dev Approval for all in native representation
     mapping(address => mapping(address => bool)) isApprovedForAll;
 
-    /// @dev Owner of id in native representation
-    mapping(uint256 => address) ownerOf;
+    /// @dev Packed representation of ownerOf and owned indices
+    mapping(uint256 => uint256) ownedData;
 
-    /// @dev Array of owned ids in native representation
+    /// @dev Array of owned ids in ERC-721 representation
     mapping(address => uint256[]) owned;
 
-    /// @dev Tracks indices for the _owned mapping
-    mapping(uint256 => uint256) ownedIndex;
+    /// @dev Addresses that are exempt from ERC-721 transfer, typically for gas savings (pairs, routers, etc)
+    mapping(address => bool) erc721TransferExempt;
 }
 
 library LibAppStorage {
