@@ -120,6 +120,7 @@ export async function main(
           cfg.toddlerNftName,
           cfg.toddlerNftSymbol,
           cfg.toddlerNftImage,
+          account
         ],
       ],
     );

@@ -21,6 +21,7 @@ contract InitDiamond {
         //uint256 totalSupply;
         string tokenUri;
 
+        address rewardManager;
 //
 //        //Sale specifics
 //        bool isSaleEnabled;
@@ -43,6 +44,8 @@ contract InitDiamond {
         s.symbol = args_.symbol;
         //s.totalSupply = args_.totalSupply;
         s.tokenUri = args_.tokenUri;
+
+        s.rewardManager = args_.rewardManager;
 //
 //        s.isSaleEnabled = args_.isSaleEnabled;
 //        s.dbnPrice = args_.dbnPrice;

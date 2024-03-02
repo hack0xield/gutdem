@@ -98,6 +98,27 @@ contract DemKidos is IERC404, Modifiers {
         return s.minted;
     }
 
+    function getERC721QueueLength() external view returns (uint256) {
+        return s.storedERC721Ids.length();
+    }
+
+    function getERC721TokensInQueue(
+        uint256 start_,
+        uint256 count_
+    ) external view returns (uint256[] memory) {
+        uint256[] memory tokensInQueue = new uint256[](count_);
+
+        for (uint256 i = start_; i < start_ + count_; ) {
+            tokensInQueue[i - start_] = s.storedERC721Ids.at(i);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return tokensInQueue;
+    }
+
     function tokenURI(uint256) external view returns (string memory) {
         return s.tokenUri;
     }
@@ -309,6 +330,13 @@ contract DemKidos is IERC404, Modifiers {
         }
     }
 
+    function setERC721TransferExempt(
+        address target_,
+        bool state_
+    ) external onlyOwner {
+        _setERC721TransferExempt(target_, state_);
+    }
+
     /// @notice Function for self-exemption
     function setSelfERC721TransferExempt(bool state_) external {
         _setERC721TransferExempt(msg.sender, state_);
@@ -317,6 +345,12 @@ contract DemKidos is IERC404, Modifiers {
     /// @notice Function to check if address is transfer exempt
     function erc721TransferExempt(address target_) public view returns (bool) {
         return target_ == address(0) || s.erc721TransferExempt[target_];
+    }
+
+    function initMintSupply(uint256 maxTotalSupplyERC721_) external onlyOwner {
+        // Do not mint the ERC721s to the initial owner, as it's a waste of gas.
+        _setERC721TransferExempt(s.rewardManager, true);
+        _mintERC20(s.rewardManager, maxTotalSupplyERC721_ * _units());
     }
 
     function _units() internal pure returns (uint256) {
