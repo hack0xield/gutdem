@@ -30,9 +30,11 @@ export let deployConfig = {
     toddlerNftName: "GUTDEM Farm Toddler",
     toddlerNftSymbol: "GDTDL",
     toddlerNftImage: "ipfs://QmUzSR5yDqtsjnzfvfFZWe2JyEryhm7UgUfhKr9pkokG7C",
-    toddlerNftMax: 3000,
+    toddlerNftMax: 5000,
     toddlerSaleActive: true,
     toddlerSaleBcnPrice: ethers.parseEther("50"),
+
+    kidosTicketsCount: 2000,
 
     //Weed Farm
     activationPrice: ethers.parseEther("1"),

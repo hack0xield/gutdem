@@ -7,7 +7,7 @@ import { deployConfig as testCfg } from "../deploy-test.config";
 
 import * as utils from "../scripts/deploy";
 
-describe.only("DemKidos Test", async () => {
+describe("DemKidos Test", async () => {
   const FacetCutAction = {
     Add: 0,
     Replace: 1,
@@ -131,7 +131,7 @@ describe.only("DemKidos Test", async () => {
       "Kidos",
       "contracts/DemKidos/InitDiamond.sol:InitDiamond",
       [demKidosArgs],
-      [[name, symbol, testCfg.toddlerNftImage, initialMintRecipientAddr]],
+      [[name, symbol, testCfg.toddlerNftImage, initialMintRecipientAddr, testCfg.toddlerNftMax]],
     );
 
     const contract = await ethers.getContractAt(
@@ -210,7 +210,7 @@ describe.only("DemKidos Test", async () => {
       "Kidos",
       "contracts/DemKidos/InitDiamond.sol:InitDiamond",
       [demKidosArgs],
-      [[name, symbol, testCfg.toddlerNftImage, initialMintRecipientAddr]],
+      [[name, symbol, testCfg.toddlerNftImage, initialMintRecipientAddr, testCfg.toddlerNftMax]],
     );
 
     const contract = await ethers.getContractAt(

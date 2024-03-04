@@ -18,15 +18,10 @@ contract InitDiamond {
     struct Args {
         string name;
         string symbol;
-        //uint256 totalSupply;
         string tokenUri;
 
         address rewardManager;
-//
-//        //Sale specifics
-//        bool isSaleEnabled;
-//        uint256 dbnPrice;
-//        address dbnContract;
+        uint256 ticketsCount;
     }
 
     function init(Args memory args_) external {
@@ -39,16 +34,22 @@ contract InitDiamond {
         ds.supportedInterfaces[type(IOwnable).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
-//
+
         s.name = args_.name;
         s.symbol = args_.symbol;
-        //s.totalSupply = args_.totalSupply;
         s.tokenUri = args_.tokenUri;
 
         s.rewardManager = args_.rewardManager;
-//
-//        s.isSaleEnabled = args_.isSaleEnabled;
-//        s.dbnPrice = args_.dbnPrice;
-//        s.dbnContract = args_.dbnContract;
+        s.ticketsCount = args_.ticketsCount;
+
+        initWlBitmap();
+    }
+
+    function initWlBitmap() internal {
+        // Init whitelistDrop bitmap
+        uint256 bucketsCount = s.ticketsCount / 256 + 1;
+        for (uint bucket = 0; bucket < bucketsCount; ++bucket) {
+            s.wlBitMap._data[bucket] = type(uint256).max;
+        }
     }
 }

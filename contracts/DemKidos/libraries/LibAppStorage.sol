@@ -2,11 +2,10 @@
 pragma solidity 0.8.20;
 
 import {LibDiamond} from "../../shared/diamond/lib/LibDiamond.sol";
+import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import {DoubleEndedQueue} from "./DoubleEndedQueue.sol";
 
 struct AppStorage {
-    address rewardManager;
-
     string name;
     string symbol;
     string tokenUri;
@@ -37,6 +36,11 @@ struct AppStorage {
 
     /// @dev Addresses that are exempt from ERC-721 transfer, typically for gas savings (pairs, routers, etc)
     mapping(address => bool) erc721TransferExempt;
+
+    address rewardManager;
+    address sigVerifier;
+    BitMaps.BitMap wlBitMap;
+    uint256 ticketsCount;
 }
 
 library LibAppStorage {

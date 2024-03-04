@@ -85,6 +85,7 @@ export async function main(
   async function deployModeChild() {
     const [
       demKidosArgs,
+      kidosDropArgs,
       growerNftArgs,
       growerSaleArgs,
       toddlerNftArgs,
@@ -98,6 +99,7 @@ export async function main(
       VRFConsumerArgs,
     ] = await deployFacets(
       "DemKidos",
+      "KidosDrop",
       "DemNft",
       "SaleFacet",
       "DemNft",
@@ -114,13 +116,14 @@ export async function main(
     kidosAddress = await deployDiamond(
       "Kidos",
       "contracts/DemKidos/InitDiamond.sol:InitDiamond",
-      [demKidosArgs],
+      [demKidosArgs, kidosDropArgs],
       [
         [
           cfg.toddlerNftName,
           cfg.toddlerNftSymbol,
           cfg.toddlerNftImage,
-          account
+          account,
+          cfg.kidosTicketsCount
         ],
       ],
     );
@@ -181,6 +184,16 @@ export async function main(
       ),
     );
 
+    {
+      const demKidos = await ethers.getContractAt(
+        "DemKidos",
+        kidosAddress,
+        accounts[0],
+      );
+      const tx = await (await demKidos.initMintSupply(cfg.toddlerNftMax)).wait();
+      LOG(`>> demKidos initMintSupply gas used: ${strDisplay(tx.gasUsed)}`);
+      totalGasUsed += tx.gasUsed;
+    }
     {
       const demRebelSale = await ethers.getContractAt(
         "PreSaleFacet",

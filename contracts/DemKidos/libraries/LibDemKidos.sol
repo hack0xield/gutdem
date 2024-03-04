@@ -1,8 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {LibAppStorage, AppStorage} from "./LibAppStorage.sol";
-import {LibERC721} from "../../shared/libraries/LibERC721.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-library LibDemNft {}
+library LibDemKidos {
+    function dropTokens(uint256 amount_, address recipient_) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        IERC20(address(this)).transferFrom(
+            s.rewardManager,
+            recipient_,
+            amount_
+        );
+    }
+}
