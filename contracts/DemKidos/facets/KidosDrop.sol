@@ -11,8 +11,6 @@ import {LibDemKidos} from "../libraries/LibDemKidos.sol";
 contract KidosDrop is Modifiers {
     using BitMaps for BitMaps.BitMap;
 
-    uint256 private constant DROP_AMOUNT = 0.5 ether;
-
     function setRewardManager(address rewardManager_) external onlyOwner {
         s.rewardManager = rewardManager_;
     }
@@ -29,7 +27,8 @@ contract KidosDrop is Modifiers {
 
     function whitelistDrop(
         bytes calldata signature_,
-        uint256 ticketNumber_
+        uint256 ticketNumber_,
+        uint256 amount_
     ) external {
         require(
             s.wlBitMap.get(ticketNumber_) == true,
@@ -37,7 +36,7 @@ contract KidosDrop is Modifiers {
         );
 
         bytes32 hash = MessageHashUtils.toEthSignedMessageHash(
-            keccak256(abi.encodePacked(msg.sender, ticketNumber_))
+            keccak256(abi.encodePacked(msg.sender, ticketNumber_, amount_))
         );
         require(
             s.sigVerifier == ECDSA.recover(hash, signature_),
@@ -45,6 +44,6 @@ contract KidosDrop is Modifiers {
         );
         s.wlBitMap.unset(ticketNumber_);
 
-        LibDemKidos.dropTokens(DROP_AMOUNT, msg.sender);
+        LibDemKidos.dropTokens(amount_, msg.sender);
     }
 }

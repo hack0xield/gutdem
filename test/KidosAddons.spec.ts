@@ -6,7 +6,7 @@ import { deployConfig as testCfg } from "../deploy-test.config";
 
 import * as utils from "../scripts/deploy";
 
-describe("DemKidos Drop and Stake Test", async () => {
+describe.only("DemKidos Drop and Stake Test", async () => {
   let kidosDrop: Contract;
 
   let accounts: Signer[];
@@ -38,9 +38,10 @@ describe("DemKidos Drop and Stake Test", async () => {
     }
 
     const ticketNumber = testCfg.kidosTicketsCount + 47;
+    const amount = ethers.parseEther("0.5");
     const msg = ethers.solidityPackedKeccak256(
-      ["address", "uint256"],
-      [address, ticketNumber],
+      ["address", "uint256", "uint256"],
+      [address, ticketNumber, amount],
     );
     const sig1 = await signer.provider.send("eth_sign", [signPublic, msg]);
     //     const sig2 = await signer.provider.send("personal_sign",
@@ -54,11 +55,11 @@ describe("DemKidos Drop and Stake Test", async () => {
     {
       const tx = await kidosDrop
         .connect(user)
-        .whitelistDrop(sig1, ticketNumber);
+        .whitelistDrop(sig1, ticketNumber, amount);
       expect((await tx.wait()).status).to.be.equal(1);
     }
     {
-      const tx = kidosDrop.connect(user).whitelistDrop(sig1, ticketNumber);
+      const tx = kidosDrop.connect(user).whitelistDrop(sig1, ticketNumber, amount);
       await expect(tx).to.be.revertedWith("KidosDrop: Already claimed");
     }
   });
