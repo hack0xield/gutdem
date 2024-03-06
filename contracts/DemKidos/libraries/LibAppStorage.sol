@@ -37,10 +37,15 @@ struct AppStorage {
     /// @dev Addresses that are exempt from ERC-721 transfer, typically for gas savings (pairs, routers, etc)
     mapping(address => bool) erc721TransferExempt;
 
+    // whitelist drop related
     address rewardManager;
     address sigVerifier;
     BitMaps.BitMap wlBitMap;
     uint256 ticketsCount;
+
+    // stake related
+    mapping(uint256 => address) originalOwner;
+    mapping(uint256 => uint256) claimedTime;
 }
 
 library LibAppStorage {
