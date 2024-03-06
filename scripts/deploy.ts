@@ -86,6 +86,7 @@ export async function main(
     const [
       demKidosArgs,
       kidosDropArgs,
+      kidosStakeArgs,
       growerNftArgs,
       growerSaleArgs,
       toddlerNftArgs,
@@ -100,6 +101,7 @@ export async function main(
     ] = await deployFacets(
       "DemKidos",
       "KidosDrop",
+      "KidosStake",
       "DemNft",
       "SaleFacet",
       "DemNft",
@@ -116,7 +118,7 @@ export async function main(
     kidosAddress = await deployDiamond(
       "Kidos",
       "contracts/DemKidos/InitDiamond.sol:InitDiamond",
-      [demKidosArgs, kidosDropArgs],
+      [demKidosArgs, kidosDropArgs, kidosStakeArgs],
       [
         [
           cfg.toddlerNftName,
