@@ -13,6 +13,8 @@ import {IERC404} from "../interfaces/IERC404.sol";
 contract DemKidos is IERC404, Modifiers {
     using DoubleEndedQueue for DoubleEndedQueue.Uint256Deque;
 
+    uint256 private constant _COINS_TO_TOKEN = 10000;
+
     uint256 private constant _BITMASK_ADDRESS = (1 << 160) - 1;
     uint256 private constant _BITMASK_OWNED_INDEX = ((1 << 96) - 1) << 160;
     uint256 public constant ID_ENCODING_PREFIX = 1 << 255;
@@ -355,7 +357,7 @@ contract DemKidos is IERC404, Modifiers {
     }
 
     function _units() internal pure returns (uint256) {
-        return 10 ** decimals();
+        return 10 ** decimals() * _COINS_TO_TOKEN;
     }
 
     /// @notice For a token token id to be considered valid, it just needs

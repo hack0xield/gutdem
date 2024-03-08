@@ -20,7 +20,7 @@ describe.only("DemKidos Drop and Stake Test", async () => {
   let toddlerAddress: string;
   let demBaconAddress: string;
 
-  const CLAIM_REWARD = 0.05; // ether;
+  const CLAIM_REWARD = 40; // ether;
   const DEFAULT_STAKE_PERIOD = 24; // hours;
 
   const DEPLOYER_ID = 0;
@@ -75,8 +75,8 @@ describe.only("DemKidos Drop and Stake Test", async () => {
       expect((await tx.wait()).status).to.be.equal(1);
     }
 
-    const ticketNumber = testCfg.kidosTicketsCount + 47;
-    const amount = ethers.parseEther("0.5");
+    const ticketNumber = testCfg.kidosTicketsCount + 119;
+    const amount = ethers.parseEther("5000");
     const msg = ethers.solidityPackedKeccak256(
       ["address", "uint256", "uint256"],
       [address, ticketNumber, amount],
@@ -111,7 +111,7 @@ describe.only("DemKidos Drop and Stake Test", async () => {
       const user = accounts[PLAYER_ID1];
       await demKidos
         .connect(accounts[MANAGER_ID])
-        .transfer(user, ethers.parseEther("0.5"));
+        .transfer(user, ethers.parseEther("5000"));
 
       const owned = await demKidos.owned(user.address);
       expect(owned.length).to.be.equal(1);

@@ -111,10 +111,11 @@ describe("DemKidos Test", async () => {
     const signers = await ethers.getSigners();
     const factory = await ethers.getContractFactory("DemKidos");
 
+    const coinsToToken = 10000n;
     const name = "Example";
     const symbol = "EX-A";
     const decimals = 18n;
-    const units = 10n ** decimals;
+    const units = 10n ** decimals * coinsToToken;
     const maxTotalSupplyERC721 = 100n;
     const maxTotalSupplyERC20 = maxTotalSupplyERC721 * units;
     const initialOwner = signers[0];
@@ -190,10 +191,11 @@ describe("DemKidos Test", async () => {
     const signers = await ethers.getSigners();
     const factory = await ethers.getContractFactory("MinimalERC404");
 
+    const coinsToToken = 10000n;
     const name = "Example";
     const symbol = "EX-A";
     const decimals = 18n;
-    const units = 10n ** decimals;
+    const units = 10n ** decimals * coinsToToken;
     const maxTotalSupplyERC721 = 100n;
     const maxTotalSupplyERC20 = maxTotalSupplyERC721 * units;
     const initialOwner = signers[0];

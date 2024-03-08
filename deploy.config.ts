@@ -34,7 +34,7 @@ export let deployConfig = {
     toddlerSaleActive: true,
     toddlerSaleBcnPrice: ethers.parseEther("50"),
 
-    kidosTicketsCount: 2000,
+    kidosTicketsCount: 5000,
 
     //Weed Farm
     activationPrice: ethers.parseEther("1"),

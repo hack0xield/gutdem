@@ -8,7 +8,7 @@ import {Modifiers} from "../libraries/LibAppStorage.sol";
 import {LibDemKidos} from "../libraries/LibDemKidos.sol";
 
 contract KidosStake is Modifiers, IERC721Receiver {
-    uint256 public constant CLAIM_REWARD = 0.05 ether;
+    uint256 public constant CLAIM_REWARD = 40 ether; //40 ERC20 Kidos
     uint256 public constant STAKE_PERIOD = 24 hours;
 
     function onERC721Received(
@@ -30,13 +30,16 @@ contract KidosStake is Modifiers, IERC721Receiver {
 
     function claimAndWithdraw(uint256 tokenId) external {
         claim(tokenId);
+        _withdraw(tokenId);
+    }
 
-        delete s.originalOwner[tokenId];
-        IERC721(address(this)).safeTransferFrom(
-            address(this),
-            msg.sender,
-            tokenId
+    function withdraw(uint256 tokenId) external {
+        require(
+            msg.sender == s.originalOwner[tokenId],
+            "KidosStake: Only original owner can claim"
         );
+
+        _withdraw(tokenId);
     }
 
     function claim(uint256 tokenId) public {
@@ -53,5 +56,14 @@ contract KidosStake is Modifiers, IERC721Receiver {
             uint256 unclaimedTime = timePassed % STAKE_PERIOD;
             s.claimedTime[tokenId] = block.timestamp - unclaimedTime;
         }
+    }
+
+    function _withdraw(uint256 tokenId) internal {
+        delete s.originalOwner[tokenId];
+        IERC721(address(this)).safeTransferFrom(
+            address(this),
+            msg.sender,
+            tokenId
+        );
     }
 }
