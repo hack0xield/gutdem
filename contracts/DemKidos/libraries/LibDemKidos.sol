@@ -14,4 +14,33 @@ library LibDemKidos {
             amount_
         );
     }
+
+    function tokenUnstake(uint256 tokenId_) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        address staker = s.originalOwner[tokenId_];
+        require(staker != address(0), "LibDemKidos: not staked error");
+
+        uint256[] storage ownerTokens = s.ownerTokens[staker];
+        uint256 index = s.tokenIndex[tokenId_];
+        uint256 lastIndex = ownerTokens.length - 1;
+        if (index != lastIndex) {
+            uint256 lastTokenId = ownerTokens[lastIndex];
+            ownerTokens[index] = lastTokenId;
+            s.tokenIndex[lastTokenId] = index;
+        }
+        ownerTokens.pop();
+        delete s.tokenIndex[tokenId_];
+        delete s.originalOwner[tokenId_];
+    }
+
+    function tokenStake(uint256 tokenId_, address staker_) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+
+        s.originalOwner[tokenId_] = staker_;
+
+        uint256[] storage ownerTokens = s.ownerTokens[staker_];
+        s.tokenIndex[tokenId_] = ownerTokens.length;
+        ownerTokens.push(tokenId_);
+    }
 }

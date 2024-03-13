@@ -119,12 +119,26 @@ describe.only("DemKidos Drop and Stake Test", async () => {
     });
 
     it("Stake", async () => {
-      await demKidos.connect(accounts[PLAYER_ID1]).safeTransferFrom(
+      const user = accounts[PLAYER_ID1];
+
+      expect((await kidosStake.stakedTokens(user.address)).length).to.equal(0);
+      {
+        const tx = demKidos.connect(user).safeTransferFrom(
+          //["safeTransferFrom(address,address,uint256)"](
+          user.address,
+          kidosAddress,
+          tokenId0,
+        );
+        await expect(tx).to.be.revertedWith("KidosStake: Stake is disabled");
+      }
+      await kidosStake.connect(accounts[MANAGER_ID]).setStakeEnabled(true);
+      await demKidos.connect(user).safeTransferFrom(
         //["safeTransferFrom(address,address,uint256)"](
-        accounts[PLAYER_ID1].address,
+        user.address,
         kidosAddress,
         tokenId0,
       );
+      expect((await kidosStake.stakedTokens(user.address)).length).to.equal(1);
     });
 
     it("Reject claim for no owner", async () => {

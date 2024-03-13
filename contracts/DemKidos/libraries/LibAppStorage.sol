@@ -45,7 +45,10 @@ struct AppStorage {
 
     // stake related
     mapping(uint256 => address) originalOwner;
+    mapping(address => uint256[]) ownerTokens;
+    mapping(uint256 => uint256) tokenIndex;
     mapping(uint256 => uint256) claimedTime;
+    bool isStakeEnabled;
 }
 
 library LibAppStorage {

@@ -11,18 +11,31 @@ contract KidosStake is Modifiers, IERC721Receiver {
     uint256 public constant CLAIM_REWARD = 40 ether; //40 ERC20 Kidos
     uint256 public constant STAKE_PERIOD = 24 hours;
 
+    function stakedTokens(address owner_) external view returns (uint256[] memory) {
+        return s.ownerTokens[owner_];
+    }
+
+    function isStakeEnabled() external view returns (bool) {
+        return s.isStakeEnabled;
+    }
+
+    function setStakeEnabled(bool enable_) external onlyRewardManager {
+        s.isStakeEnabled = enable_;
+    }
+
     function onERC721Received(
         address,
         address from,
         uint256 tokenId,
         bytes calldata
     ) external returns (bytes4) {
+        require(s.isStakeEnabled, "KidosStake: Stake is disabled");
         require(
             msg.sender == address(this),
             "KidosStake: Expects DemKidos NFT"
         );
 
-        s.originalOwner[tokenId] = from;
+        LibDemKidos.tokenStake(tokenId, from);
         s.claimedTime[tokenId] = block.timestamp;
 
         return IERC721Receiver.onERC721Received.selector;
@@ -43,6 +56,10 @@ contract KidosStake is Modifiers, IERC721Receiver {
     }
 
     function claim(uint256 tokenId) public {
+        if (!s.isStakeEnabled) {
+            return;
+        }
+
         require(
             msg.sender == s.originalOwner[tokenId],
             "KidosStake: Only original owner can claim"
@@ -59,7 +76,7 @@ contract KidosStake is Modifiers, IERC721Receiver {
     }
 
     function _withdraw(uint256 tokenId) internal {
-        delete s.originalOwner[tokenId];
+        LibDemKidos.tokenUnstake(tokenId);
         IERC721(address(this)).safeTransferFrom(
             address(this),
             msg.sender,
