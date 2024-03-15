@@ -5,6 +5,8 @@ import {LibDiamond} from "../../shared/diamond/lib/LibDiamond.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import {DoubleEndedQueue} from "./DoubleEndedQueue.sol";
 
+uint256 constant COINS_TO_TOKEN = 10000;
+
 struct AppStorage {
     string name;
     string symbol;
@@ -42,6 +44,12 @@ struct AppStorage {
     address sigVerifier;
     BitMaps.BitMap wlBitMap;
     uint256 ticketsCount;
+    uint256 dropPrice;
+
+    // mint related
+    uint256 maxMintNfts;
+    uint256 mintPrice;
+    bool isMintEnabled;
 
     // stake related
     mapping(uint256 => address) originalOwner;

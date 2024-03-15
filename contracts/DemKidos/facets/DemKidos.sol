@@ -7,13 +7,11 @@ import {DoubleEndedQueue} from "../libraries/DoubleEndedQueue.sol";
 import {ERC20Events} from "../libraries/ERC20Events.sol";
 import {ERC721Events} from "../libraries/ERC721Events.sol";
 
-import {Modifiers} from "../libraries/LibAppStorage.sol";
+import {Modifiers, COINS_TO_TOKEN} from "../libraries/LibAppStorage.sol";
 import {IERC404} from "../interfaces/IERC404.sol";
 
 contract DemKidos is IERC404, Modifiers {
     using DoubleEndedQueue for DoubleEndedQueue.Uint256Deque;
-
-    uint256 private constant _COINS_TO_TOKEN = 10000;
 
     uint256 private constant _BITMASK_ADDRESS = (1 << 160) - 1;
     uint256 private constant _BITMASK_OWNED_INDEX = ((1 << 96) - 1) << 160;
@@ -357,7 +355,7 @@ contract DemKidos is IERC404, Modifiers {
     }
 
     function _units() internal pure returns (uint256) {
-        return 10 ** decimals() * _COINS_TO_TOKEN;
+        return 10 ** decimals() * COINS_TO_TOKEN;
     }
 
     /// @notice For a token token id to be considered valid, it just needs

@@ -28,6 +28,7 @@ describe.only("DemKidos Drop and Stake Test", async () => {
   const SIGNER_ID = 1;
   const PLAYER_ID1 = 2;
   const PLAYER_ID2 = 3;
+  const PLAYER_ID3 = 4;
 
   before(async () => {
     const deployOutput = await utils.main(false, true);
@@ -69,9 +70,14 @@ describe.only("DemKidos Drop and Stake Test", async () => {
     const signPublic = await signer.getAddress();
     const user = accounts[PLAYER_ID1];
     const address = await user.getAddress();
+    const dropPrice = ethers.parseEther("0.003");
 
     {
       const tx = await kidosDrop.setSigVerifierAddress(signPublic);
+      expect((await tx.wait()).status).to.be.equal(1);
+    }
+    {
+      const tx = await kidosDrop.setDropPrice(dropPrice);
       expect((await tx.wait()).status).to.be.equal(1);
     }
 
@@ -91,21 +97,32 @@ describe.only("DemKidos Drop and Stake Test", async () => {
     //     console.log(sig3);
 
     {
-      const tx = await kidosDrop
+      const tx = kidosDrop
         .connect(user)
         .whitelistDrop(sig1, ticketNumber, amount);
+      await expect(tx).to.be.revertedWith(
+        "KidosDrop: Insufficient ethers value",
+      );
+    }
+    {
+      const tx = await kidosDrop
+        .connect(user)
+        .whitelistDrop(sig1, ticketNumber, amount, {
+          value: dropPrice,
+        });
       expect((await tx.wait()).status).to.be.equal(1);
     }
     {
       const tx = kidosDrop
         .connect(user)
-        .whitelistDrop(sig1, ticketNumber, amount);
+        .whitelistDrop(sig1, ticketNumber, amount, {
+          value: dropPrice,
+        });
       await expect(tx).to.be.revertedWith("KidosDrop: Already claimed");
     }
   });
 
   let tokenId0;
-
   describe("Kidos Stake", function () {
     it("Owner should be changed", async () => {
       const user = accounts[PLAYER_ID1];
@@ -219,6 +236,59 @@ describe.only("DemKidos Drop and Stake Test", async () => {
       await checkBalance(
         ethers.parseEther((CLAIM_REWARD * 2).toString()) + initAmount,
       );
+    });
+  });
+
+  describe("Kidos Mint", function () {
+    it("Should stop on checks", async () => {
+      const user = accounts[PLAYER_ID3];
+      {
+        const tx = kidosDrop.connect(user).mint(1);
+        await expect(tx).to.be.revertedWith("KidosDrop: Mint is disabled");
+      }
+      await kidosDrop.setMintEnabled(true);
+      {
+        const tx = kidosDrop.connect(user).mint(5, {
+          value: testCfg.kidosMintPrice * BigInt(4),
+        });
+        await expect(tx).to.be.revertedWith(
+          "KidosDrop: Insufficient ethers value",
+        );
+      }
+    });
+
+    it("Should mint 1 nft", async () => {
+      const user = accounts[PLAYER_ID3];
+      await kidosDrop.connect(user).mint(1, {
+        value: testCfg.kidosMintPrice * BigInt(1),
+      });
+
+      const owned = await demKidos.owned(user.address);
+      expect(owned.length).to.be.equal(1);
+    });
+
+    it("Should mint 5 nft", async () => {
+      const user = accounts[PLAYER_ID3];
+      let amount = 5;
+      await kidosDrop.connect(user).mint(amount, {
+        value: testCfg.kidosMintPrice * BigInt(amount),
+      });
+
+      const owned = await demKidos.owned(user.address);
+      expect(owned.length).to.be.equal(amount + 1);
+    });
+
+    it("Should not mint more than ${testCfg.kidosMaxMintNfts} nfts", async () => {
+      const user = accounts[PLAYER_ID3];
+      let amount = 5;
+      {
+        const tx = kidosDrop.connect(user).mint(amount, {
+          value: testCfg.kidosMintPrice * BigInt(amount),
+        });
+        await expect(tx).to.be.revertedWith(
+          "KidosDrop: Exceeded maximum nfts per user",
+        );
+      }
     });
   });
 });

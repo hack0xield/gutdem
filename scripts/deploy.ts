@@ -125,7 +125,9 @@ export async function main(
           cfg.toddlerNftSymbol,
           cfg.toddlerNftImage,
           account,
-          cfg.kidosTicketsCount
+          cfg.kidosTicketsCount,
+          cfg.kidosMaxMintNfts,
+          cfg.kidosMintPrice,
         ],
       ],
     );

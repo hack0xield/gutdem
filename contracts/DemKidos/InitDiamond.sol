@@ -23,6 +23,9 @@ contract InitDiamond {
 
         address rewardManager;
         uint256 ticketsCount;
+
+        uint256 maxMintNfts;
+        uint256 mintPrice;
     }
 
     function init(Args memory args_) external {
@@ -43,6 +46,9 @@ contract InitDiamond {
 
         s.rewardManager = args_.rewardManager;
         s.ticketsCount = args_.ticketsCount;
+
+        s.maxMintNfts = args_.maxMintNfts;
+        s.mintPrice = args_.mintPrice;
 
         initWlBitmap();
     }

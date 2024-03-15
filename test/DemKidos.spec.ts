@@ -132,7 +132,17 @@ describe("DemKidos Test", async () => {
       "Kidos",
       "contracts/DemKidos/InitDiamond.sol:InitDiamond",
       [demKidosArgs],
-      [[name, symbol, testCfg.toddlerNftImage, initialMintRecipientAddr, testCfg.toddlerNftMax]],
+      [
+        [
+          name,
+          symbol,
+          testCfg.toddlerNftImage,
+          initialMintRecipientAddr,
+          testCfg.kidosTicketsCount,
+          testCfg.kidosMaxMintNfts,
+          testCfg.kidosMintPrice,
+        ],
+      ],
     );
 
     const contract = await ethers.getContractAt(
@@ -212,7 +222,17 @@ describe("DemKidos Test", async () => {
       "Kidos",
       "contracts/DemKidos/InitDiamond.sol:InitDiamond",
       [demKidosArgs],
-      [[name, symbol, testCfg.toddlerNftImage, initialMintRecipientAddr, testCfg.toddlerNftMax]],
+      [
+        [
+          name,
+          symbol,
+          testCfg.toddlerNftImage,
+          initialMintRecipientAddr,
+          testCfg.kidosTicketsCount,
+          testCfg.kidosMaxMintNfts,
+          testCfg.kidosMintPrice,
+        ],
+      ],
     );
 
     const contract = await ethers.getContractAt(
