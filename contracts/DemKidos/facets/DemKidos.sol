@@ -347,11 +347,10 @@ contract DemKidos is IERC404, Modifiers {
         return target_ == address(0) || s.erc721TransferExempt[target_];
     }
 
-    function initMintSupply(uint256 maxTotalSupplyERC721_) external onlyRewardManager {
+    function initMintSupply(uint256 maxTotalSupplyERC721_) external onlyOwner {
         // Do not mint the ERC721s to the initial owner, as it's a waste of gas.
         _setERC721TransferExempt(s.rewardManager, true);
         _mintERC20(s.rewardManager, maxTotalSupplyERC721_ * _units());
-        erc20Approve(address(this), type(uint256).max);
     }
 
     function _units() internal pure returns (uint256) {

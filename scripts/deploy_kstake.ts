@@ -5,10 +5,7 @@ import { deployConfig as testCfg } from "../deploy-test.config";
 
 const kidosAddress = "0x6Dcb9f4B4E0F2474378E316DDCd23e0Ef00ddE56";
 
-export async function main(
-  tests: boolean,
-  kidos: string
-): Promise<[string]> {
+export async function main(tests: boolean, kidos: string): Promise<[string]> {
   const LOG = !tests ? console.log.bind(console) : function () {};
   let totalGasUsed = 0n;
   const accounts = await ethers.getSigners();
@@ -33,18 +30,20 @@ export async function main(
   LOG(`>> KidosStake deploy gas used: ${strDisplay(receipt.gasUsed)}`);
   totalGasUsed += receipt.gasUsed;
 
-  const rewardManager = await accounts[1].getAddress();
-  const tx = await (await contract.setRewardManager(rewardManager)).wait();
+  const rewardManager = accounts[1];
+  const rewardManagerAddr = tests ? await rewardManager.getAddress() : cfg.kidosRewardMgr;
+  const tx = await (await contract.setRewardManager(rewardManagerAddr)).wait();
   LOG(`>> KidosStake setRewardManager gas used: ${strDisplay(tx.gasUsed)}`);
   totalGasUsed += tx.gasUsed;
 
-  if(tests) { //Set approve with RewardManager when not test deploy!
-    const demKidos = await ethers.getContractAt(
-      "DemKidos",
-      kidos,
-      accounts[0],
-    );
-    const tx = await (await demKidos.connect(accounts[1]).erc20Approve(stakeContract, ethers.MaxUint256)).wait();
+  if (tests) {
+    //Set approve with RewardManager when not test deploy!
+    const demKidos = await ethers.getContractAt("DemKidos", kidos, accounts[0]);
+    const tx = await (
+      await demKidos
+        .connect(accounts[1])
+        .erc20Approve(stakeContract, ethers.MaxUint256)
+    ).wait();
     LOG(`>> demKidos erc20Approve gas used: ${strDisplay(tx.gasUsed)}`);
     totalGasUsed += tx.gasUsed;
   }

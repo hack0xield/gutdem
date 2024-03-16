@@ -18,6 +18,7 @@ export async function main(
   if (tests == true) {
     cfg = testCfg;
   }
+  const rewardManagerAddr = tests ? await rewardManager.getAddress() : cfg.kidosRewardMgr;
 
   const dbnAddress = await demBaconDeploy();
   const safeAddress = await deploySafe();
@@ -123,7 +124,7 @@ export async function main(
           cfg.toddlerNftName,
           cfg.toddlerNftSymbol,
           cfg.toddlerNftImage,
-          await rewardManager.getAddress(),
+          rewardManagerAddr,
           cfg.kidosTicketsCount,
           cfg.kidosMaxMintNfts,
           cfg.kidosMintPrice,
@@ -187,15 +188,26 @@ export async function main(
       ),
     );
 
-    if (tests) { //Set approve with RewardManager when not test deploy!
+    {
       const demKidos = await ethers.getContractAt(
         "DemKidos",
         kidosAddress,
         accounts[0],
       );
-      const tx = await (await demKidos.connect(rewardManager).initMintSupply(cfg.toddlerNftMax)).wait();
-      LOG(`>> demKidos initMintSupply gas used: ${strDisplay(tx.gasUsed)}`);
-      totalGasUsed += tx.gasUsed;
+      {
+        const tx = await (await demKidos.initMintSupply(cfg.toddlerNftMax)).wait();
+        LOG(`>> demKidos initMintSupply gas used: ${strDisplay(tx.gasUsed)}`);
+        totalGasUsed += tx.gasUsed;
+      }
+      if (tests) { //Set approve with RewardManager when not test deploy!
+        const tx = await (
+          await demKidos
+            .connect(accounts[1])
+            .erc20Approve(kidosAddress, ethers.MaxUint256)
+        ).wait();
+        LOG(`>> demKidos erc20Approve gas used: ${strDisplay(tx.gasUsed)}`);
+        totalGasUsed += tx.gasUsed;
+      }
     }
     {
       const demRebelSale = await ethers.getContractAt(

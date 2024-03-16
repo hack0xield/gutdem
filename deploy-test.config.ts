@@ -38,6 +38,7 @@ export let deployConfig = {
     kidosMintPrice: ethers.parseEther("0.0003"),
     kidosTicketsCount: 10000,
     kidosMaxMintNfts: 10,
+    kidosRewardMgr: "0x769E939c3B807523058953F259b355f6CcBF1bCb",
 
     //Weed Farm
     activationPrice: ethers.parseEther("1"),
