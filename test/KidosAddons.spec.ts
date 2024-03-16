@@ -7,7 +7,7 @@ import { deployConfig as testCfg } from "../deploy-test.config";
 
 import * as utils from "../scripts/deploy";
 
-describe.only("DemKidos Drop and Stake Test", async () => {
+describe.only("DemKidos Drop and Mint Test", async () => {
   let demKidos: Contract;
   let kidosDrop: Contract;
   let kidosStake: Contract;
@@ -24,8 +24,8 @@ describe.only("DemKidos Drop and Stake Test", async () => {
   const DEFAULT_STAKE_PERIOD = 24; // hours;
 
   const DEPLOYER_ID = 0;
-  const MANAGER_ID = 0;
-  const SIGNER_ID = 1;
+  const MANAGER_ID = 1;
+  const SIGNER_ID = 10;
   const PLAYER_ID1 = 2;
   const PLAYER_ID2 = 3;
   const PLAYER_ID3 = 4;
@@ -69,15 +69,16 @@ describe.only("DemKidos Drop and Stake Test", async () => {
     const signer = accounts[SIGNER_ID];
     const signPublic = await signer.getAddress();
     const user = accounts[PLAYER_ID1];
+    const manager = accounts[MANAGER_ID];
     const address = await user.getAddress();
     const dropPrice = ethers.parseEther("0.003");
 
     {
-      const tx = await kidosDrop.setSigVerifierAddress(signPublic);
+      const tx = await kidosDrop.connect(manager).setSigVerifierAddress(signPublic);
       expect((await tx.wait()).status).to.be.equal(1);
     }
     {
-      const tx = await kidosDrop.setDropPrice(dropPrice);
+      const tx = await kidosDrop.connect(manager).setDropPrice(dropPrice);
       expect((await tx.wait()).status).to.be.equal(1);
     }
 
@@ -122,131 +123,15 @@ describe.only("DemKidos Drop and Stake Test", async () => {
     }
   });
 
-  let tokenId0;
-  describe("Kidos Stake", function () {
-    it("Owner should be changed", async () => {
-      const user = accounts[PLAYER_ID1];
-      await demKidos
-        .connect(accounts[MANAGER_ID])
-        .transfer(user, ethers.parseEther("5000"));
-
-      const owned = await demKidos.owned(user.address);
-      expect(owned.length).to.be.equal(1);
-      tokenId0 = owned[0];
-    });
-
-    it("Stake", async () => {
-      const user = accounts[PLAYER_ID1];
-
-      expect((await kidosStake.stakedTokens(user.address)).length).to.equal(0);
-      {
-        const tx = demKidos.connect(user).safeTransferFrom(
-          //["safeTransferFrom(address,address,uint256)"](
-          user.address,
-          kidosAddress,
-          tokenId0,
-        );
-        await expect(tx).to.be.revertedWith("KidosStake: Stake is disabled");
-      }
-      await kidosStake.connect(accounts[MANAGER_ID]).setStakeEnabled(true);
-      await demKidos.connect(user).safeTransferFrom(
-        //["safeTransferFrom(address,address,uint256)"](
-        user.address,
-        kidosAddress,
-        tokenId0,
-      );
-      expect((await kidosStake.stakedTokens(user.address)).length).to.equal(1);
-    });
-
-    it("Reject claim for no owner", async () => {
-      await expect(
-        kidosStake.connect(accounts[PLAYER_ID2]).claim(tokenId0),
-      ).to.be.revertedWith("KidosStake: Only original owner can claim");
-    });
-
-    it("Withdraw", async () => {
-      expect(
-        await demKidos.connect(accounts[PLAYER_ID1]).ownerOf(tokenId0),
-      ).to.be.equal(kidosAddress);
-
-      await kidosStake.connect(accounts[PLAYER_ID1]).claimAndWithdraw(tokenId0);
-
-      expect(
-        await demKidos.connect(accounts[PLAYER_ID1]).ownerOf(tokenId0),
-      ).to.be.equal(accounts[PLAYER_ID1].address);
-    });
-
-    it("Reject withdraw for no owner", async () => {
-      await expect(
-        kidosStake.connect(accounts[PLAYER_ID2]).claimAndWithdraw(tokenId0),
-      ).to.be.revertedWith("KidosStake: Only original owner can claim");
-    });
-  });
-
-  describe("Wrong NFT Stake", function () {
-    it("Reject if other NFT staked", async () => {
-      const owner = accounts[DEPLOYER_ID];
-      const user = accounts[PLAYER_ID1];
-      await helpers.buyToddlers(owner, user, 1, demBacon, otherNFT);
-      await expect(
-        otherNFT.connect(accounts[PLAYER_ID1]).safeTransferFrom(
-          //["safeTransferFrom(address,address,uint256)"](
-          accounts[PLAYER_ID1].address,
-          kidosAddress,
-          0,
-        ),
-      ).to.be.revertedWith("KidosStake: Expects DemKidos NFT");
-    });
-  });
-
-  describe("Stake and Claim balances", function () {
-    async function checkBalance(amount: BigNumber) {
-      const balance = await demKidos.balanceOf(accounts[PLAYER_ID1].address);
-      //console.log(balance);
-      expect(balance).to.be.equal(amount);
-    }
-
-    it("Balance Checks", async () => {
-      const initAmount = 0n; //ethers.parseEther("1");
-      await demKidos.connect(accounts[PLAYER_ID1]).safeTransferFrom(
-        //["safeTransferFrom(address,address,uint256)"](
-        accounts[PLAYER_ID1].address,
-        kidosAddress,
-        tokenId0,
-      );
-
-      await checkBalance(initAmount);
-
-      await kidosStake.connect(accounts[PLAYER_ID1]).claim(tokenId0);
-
-      await checkBalance(initAmount);
-
-      await time.increase(
-        (DEFAULT_STAKE_PERIOD + DEFAULT_STAKE_PERIOD / 2) * 60 * 60,
-      ); //36 hours
-      await kidosStake.connect(accounts[PLAYER_ID1]).claim(tokenId0);
-
-      await checkBalance(
-        ethers.parseEther(CLAIM_REWARD.toString()) + initAmount,
-      );
-
-      await time.increase((DEFAULT_STAKE_PERIOD / 2) * 60 * 60); //12 hours
-      await kidosStake.connect(accounts[PLAYER_ID1]).claim(tokenId0);
-
-      await checkBalance(
-        ethers.parseEther((CLAIM_REWARD * 2).toString()) + initAmount,
-      );
-    });
-  });
-
   describe("Kidos Mint", function () {
     it("Should stop on checks", async () => {
       const user = accounts[PLAYER_ID3];
+      const manager = accounts[MANAGER_ID];
       {
         const tx = kidosDrop.connect(user).mint(1);
         await expect(tx).to.be.revertedWith("KidosDrop: Mint is disabled");
       }
-      await kidosDrop.setMintEnabled(true);
+      await kidosDrop.connect(manager).setMintEnabled(true);
       {
         const tx = kidosDrop.connect(user).mint(5, {
           value: testCfg.kidosMintPrice * BigInt(4),
