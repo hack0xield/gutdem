@@ -36,18 +36,6 @@ export async function main(tests: boolean, kidos: string): Promise<[string]> {
   LOG(`>> KidosStake setRewardManager gas used: ${strDisplay(tx.gasUsed)}`);
   totalGasUsed += tx.gasUsed;
 
-  if (tests) {
-    //Set approve with RewardManager when not test deploy!
-    const demKidos = await ethers.getContractAt("DemKidos", kidos, accounts[0]);
-    const tx = await (
-      await demKidos
-        .connect(accounts[1])
-        .erc20Approve(stakeContract, ethers.MaxUint256)
-    ).wait();
-    LOG(`>> demKidos erc20Approve gas used: ${strDisplay(tx.gasUsed)}`);
-    totalGasUsed += tx.gasUsed;
-  }
-
   LOG(`> KidosStake Total gas used: ${strDisplay(totalGasUsed)}`);
 
   return stakeContract;

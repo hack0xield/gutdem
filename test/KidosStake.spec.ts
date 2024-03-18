@@ -76,6 +76,8 @@ describe.only("KidosStake", async () => {
     });
 
     it("Init Stake", async () => {
+      await demKidos.connect(accounts[MANAGER_ID]).erc20Approve(kidosStakeAddress, ethers.MaxUint256);
+
       await kidosStake.connect(accounts[MANAGER_ID]).setRewardToken(kidosAddress);
       await kidosStake.connect(accounts[MANAGER_ID]).setRewardAmount(CLAIM_REWARD);
       await kidosStake.connect(accounts[MANAGER_ID]).setStakePeriod(DEFAULT_STAKE_PERIOD);

@@ -76,6 +76,17 @@ contract KidosStake is Ownable, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
+    function rewardToClaim(uint256 tokenId_) public view returns(uint256) {
+        if (!isStakeEnabled) {
+            return 0;
+        }
+
+        uint256 timePassed = block.timestamp - _claimedTime[tokenId_];
+        uint256 reward = (timePassed / stakePeriod) * rewardAmount;
+
+        return reward;
+    }
+
     function claimAndWithdraw(uint256 tokenId_) external {
         require(
             msg.sender == _originalOwner[tokenId_],
@@ -86,7 +97,7 @@ contract KidosStake is Ownable, IERC721Receiver {
         _withdraw(tokenId_);
     }
 
-    function claim(uint256 tokenId_) public {
+    function claim(uint256 tokenId_) external {
         require(
             msg.sender == _originalOwner[tokenId_],
             "KidosStake: Only original owner can claim"
@@ -102,17 +113,6 @@ contract KidosStake is Ownable, IERC721Receiver {
         );
 
         _withdraw(tokenId_);
-    }
-
-    function rewardToClaim(uint256 tokenId_) public view returns(uint256) {
-        if (!isStakeEnabled) {
-            return 0;
-        }
-
-        uint256 timePassed = block.timestamp - _claimedTime[tokenId_];
-        uint256 reward = (timePassed / stakePeriod) * rewardAmount;
-
-        return reward;
     }
 
     function _claim(uint256 tokenId_) internal {
