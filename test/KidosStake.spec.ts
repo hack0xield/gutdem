@@ -21,8 +21,8 @@ describe.only("KidosStake", async () => {
   let demBaconAddress: string;
   let kidosStakeAddress: string;
 
-  const CLAIM_REWARD = 40; // ether;
-  const DEFAULT_STAKE_PERIOD = 24; // hours;
+  const CLAIM_REWARD = ethers.parseEther("40");
+  const DEFAULT_STAKE_PERIOD = 24 * 60 * 60; //24 hours
 
   const DEPLOYER_ID = 0;
   const MANAGER_ID = 1;
@@ -73,6 +73,12 @@ describe.only("KidosStake", async () => {
       const owned = await demKidos.owned(user.address);
       expect(owned.length).to.be.equal(1);
       tokenId0 = owned[0];
+    });
+
+    it("Init Stake", async () => {
+      await kidosStake.connect(accounts[MANAGER_ID]).setRewardToken(kidosAddress);
+      await kidosStake.connect(accounts[MANAGER_ID]).setRewardAmount(CLAIM_REWARD);
+      await kidosStake.connect(accounts[MANAGER_ID]).setStakePeriod(DEFAULT_STAKE_PERIOD);
     });
 
     it("Stake", async () => {
@@ -161,20 +167,19 @@ describe.only("KidosStake", async () => {
       await kidosStake.connect(accounts[PLAYER_ID1]).claim(tokenId0);
       await checkBalance(initAmount);
 
-      let rewardInWei = ethers.parseEther(CLAIM_REWARD.toString());
       await time.increase(
-        (DEFAULT_STAKE_PERIOD + DEFAULT_STAKE_PERIOD / 2) * 60 * 60,
+        (DEFAULT_STAKE_PERIOD + DEFAULT_STAKE_PERIOD / 2),
       ); //36 hours
       let amountToClaim = await kidosStake.rewardToClaim(tokenId0);
-      expect(amountToClaim).to.be.equal(rewardInWei);
+      expect(amountToClaim).to.be.equal(CLAIM_REWARD);
       await kidosStake.connect(accounts[PLAYER_ID1]).claim(tokenId0);
-      await checkBalance(rewardInWei + initAmount);
+      await checkBalance(CLAIM_REWARD + initAmount);
 
-      await time.increase((DEFAULT_STAKE_PERIOD / 2) * 60 * 60); //12 hours
+      await time.increase(DEFAULT_STAKE_PERIOD / 2); //12 hours
       amountToClaim = await kidosStake.rewardToClaim(tokenId0);
-      expect(amountToClaim).to.be.equal(rewardInWei);
+      expect(amountToClaim).to.be.equal(CLAIM_REWARD);
       await kidosStake.connect(accounts[PLAYER_ID1]).claim(tokenId0);
-      await checkBalance(rewardInWei * 2n + initAmount);
+      await checkBalance(CLAIM_REWARD * 2n + initAmount);
     });
   });
 });

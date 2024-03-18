@@ -3,7 +3,7 @@ import { strDisplay } from "./shared/utils";
 import { deployConfig as cfg } from "../deploy.config";
 import { deployConfig as testCfg } from "../deploy-test.config";
 
-const kidosAddress = "0x6Dcb9f4B4E0F2474378E316DDCd23e0Ef00ddE56";
+const kidosAddress = "0x28560885a1Ea65FC431d1AD59d8692254c478E6f";
 
 export async function main(tests: boolean, kidos: string): Promise<[string]> {
   const LOG = !tests ? console.log.bind(console) : function () {};

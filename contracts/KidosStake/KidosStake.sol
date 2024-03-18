@@ -7,17 +7,26 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract KidosStake is Ownable, IERC721Receiver {
-    address private _rewardManager;
+    address public rewardManager;
+    bool public isStakeEnabled;
+    IERC20 public rewardToken;
+    uint256 public rewardAmount;
+    uint256 public stakePeriod;
+
     address private _kidos;
-    bool private _isStakeEnabled;
 
     mapping(uint256 => address) private _originalOwner;
     mapping(address => uint256[]) private _ownerTokens;
     mapping(uint256 => uint256) private _tokenIndex;
     mapping(uint256 => uint256) private _claimedTime;
 
-    uint256 public constant CLAIM_REWARD = 40 ether; //40 ERC20 Kidos
-    uint256 public constant STAKE_PERIOD = 24 hours;
+    modifier onlyRewardManager() {
+        require(
+            rewardManager == msg.sender,
+            "KidosStake: Only reward manager"
+        );
+        _;
+    }
 
     constructor(address kidos_) Ownable(msg.sender) {
         _kidos = kidos_;
@@ -29,100 +38,104 @@ contract KidosStake is Ownable, IERC721Receiver {
         return _ownerTokens[owner_];
     }
 
-    function isStakeEnabled() external view returns (bool) {
-        return _isStakeEnabled;
-    }
-
-    function setStakeEnabled(bool enable_) external {
-        require(
-            _rewardManager == msg.sender,
-            "KidosStake: Only reward manager"
-        );
-        _isStakeEnabled = enable_;
-    }
-
     function setRewardManager(address rewardManager_) external onlyOwner {
-        _rewardManager = rewardManager_;
+        rewardManager = rewardManager_;
+    }
+
+    function setStakeEnabled(bool enable_) external onlyRewardManager {
+        isStakeEnabled = enable_;
+    }
+
+    function setRewardToken(IERC20 rewardToken_) external onlyRewardManager {
+        rewardToken = rewardToken_;
+    }
+
+    function setRewardAmount(uint256 rewardAmount_) external onlyRewardManager {
+        rewardAmount = rewardAmount_;
+    }
+
+    function setStakePeriod(uint256 stakePeriod_) external onlyRewardManager {
+        stakePeriod = stakePeriod_;
     }
 
     function onERC721Received(
         address,
-        address from,
-        uint256 tokenId,
+        address from_,
+        uint256 tokenId_,
         bytes calldata
     ) external returns (bytes4) {
-        require(_isStakeEnabled, "KidosStake: Stake is disabled");
+        require(isStakeEnabled, "KidosStake: Stake is disabled");
         require(
             msg.sender == address(_kidos),
             "KidosStake: Expects DemKidos NFT"
         );
 
-        _tokenStake(tokenId, from);
-        _claimedTime[tokenId] = block.timestamp;
+        _tokenStake(tokenId_, from_);
+        _claimedTime[tokenId_] = block.timestamp;
 
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function claimAndWithdraw(uint256 tokenId) external {
+    function claimAndWithdraw(uint256 tokenId_) external {
         require(
-            msg.sender == _originalOwner[tokenId],
+            msg.sender == _originalOwner[tokenId_],
             "KidosStake: Only original owner can withdraw/claim"
         );
 
-        _claim(tokenId);
-        _withdraw(tokenId);
+        _claim(tokenId_);
+        _withdraw(tokenId_);
     }
 
-    function claim(uint256 tokenId) public {
+    function claim(uint256 tokenId_) public {
         require(
-            msg.sender == _originalOwner[tokenId],
+            msg.sender == _originalOwner[tokenId_],
             "KidosStake: Only original owner can claim"
         );
 
-        _claim(tokenId);
+        _claim(tokenId_);
     }
 
-    function withdraw(uint256 tokenId) external {
+    function withdraw(uint256 tokenId_) external {
         require(
-            msg.sender == _originalOwner[tokenId],
+            msg.sender == _originalOwner[tokenId_],
             "KidosStake: Only original owner can withdraw"
         );
 
-        _withdraw(tokenId);
+        _withdraw(tokenId_);
     }
 
-    function rewardToClaim(uint256 tokenId) public view returns(uint256) {
-        if (!_isStakeEnabled) {
+    function rewardToClaim(uint256 tokenId_) public view returns(uint256) {
+        if (!isStakeEnabled) {
             return 0;
         }
 
-        uint256 timePassed = block.timestamp - _claimedTime[tokenId];
-        uint256 reward = (timePassed / STAKE_PERIOD) * CLAIM_REWARD;
+        uint256 timePassed = block.timestamp - _claimedTime[tokenId_];
+        uint256 reward = (timePassed / stakePeriod) * rewardAmount;
 
         return reward;
     }
 
-    function _claim(uint256 tokenId) internal {
-        uint256 reward = rewardToClaim(tokenId);
+    function _claim(uint256 tokenId_) internal {
+        uint256 reward = rewardToClaim(tokenId_);
         if (reward > 0) {
-            IERC20(address(_kidos)).transferFrom(
-                _rewardManager,
+            rewardToken.transferFrom(
+                rewardManager,
                 msg.sender,
                 reward
             );
 
-            uint256 timePassed = block.timestamp - _claimedTime[tokenId];
-            uint256 unclaimedTime = timePassed % STAKE_PERIOD;
-            _claimedTime[tokenId] = block.timestamp - unclaimedTime;
+            uint256 timePassed = block.timestamp - _claimedTime[tokenId_];
+            uint256 unclaimedTime = timePassed % stakePeriod;
+            _claimedTime[tokenId_] = block.timestamp - unclaimedTime;
         }
     }
 
-    function _withdraw(uint256 tokenId) internal {
-        _tokenUnstake(tokenId);
+    function _withdraw(uint256 tokenId_) internal {
+        _tokenUnstake(tokenId_);
         IERC721(address(_kidos)).safeTransferFrom(
             address(this),
             msg.sender,
-            tokenId
+            tokenId_
         );
     }
 
