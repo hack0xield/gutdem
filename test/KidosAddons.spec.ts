@@ -74,10 +74,6 @@ describe.only("DemKidos Drop and Mint Test", async () => {
     const dropPrice = ethers.parseEther("0.003");
 
     {
-      const tx = await kidosDrop.connect(manager).setSigVerifierAddress(signPublic);
-      expect((await tx.wait()).status).to.be.equal(1);
-    }
-    {
       const tx = await kidosDrop.connect(manager).setDropPrice(dropPrice);
       expect((await tx.wait()).status).to.be.equal(1);
     }
@@ -97,6 +93,18 @@ describe.only("DemKidos Drop and Mint Test", async () => {
     //     const sig3 = await signer.signMessage(msg);
     //     console.log(sig3);
 
+    {
+      const tx = kidosDrop
+        .connect(user)
+        .whitelistDrop(sig1, ticketNumber, amount);
+      await expect(tx).to.be.revertedWith(
+        "KidosDrop: SigVer is not set",
+      );
+    }
+    {
+      const tx = await kidosDrop.connect(manager).setSigVerifierAddress(signPublic);
+      expect((await tx.wait()).status).to.be.equal(1);
+    }
     {
       const tx = kidosDrop
         .connect(user)

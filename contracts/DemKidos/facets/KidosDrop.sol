@@ -8,6 +8,8 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Modifiers} from "../libraries/LibAppStorage.sol";
 import {LibDemKidos} from "../libraries/LibDemKidos.sol";
 
+import "hardhat/console.sol";
+
 contract KidosDrop is Modifiers {
     using BitMaps for BitMaps.BitMap;
 
@@ -66,6 +68,7 @@ contract KidosDrop is Modifiers {
         uint256 ticketNumber_,
         uint256 amount_
     ) external payable {
+        require(s.sigVerifier != address(0), "KidosDrop: SigVer is not set");
         require(
             s.wlBitMap.get(ticketNumber_) == true,
             "KidosDrop: Already claimed"
