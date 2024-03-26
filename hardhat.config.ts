@@ -8,7 +8,8 @@ const infuraKey = fs.readFileSync(".infura").toString("utf-8");
 const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
-      blast_sepolia: "blast_sepolia", // apiKey is not required, just set a placeholder
+      blast_sepolia: "blast_sepolia",
+      blast: "blast", // apiKey is not required, just set a placeholder
     },
     customChains: [
       {
@@ -20,6 +21,15 @@ const config: HardhatUserConfig = {
           browserURL: "https://testnet.blastscan.io",
         },
       },
+      {
+        network: "blast",
+        chainId: 81457,
+        urls: {
+          apiURL:
+            "https://api.routescan.io/v2/network/mainnet/evm/81457/etherscan",
+          browserURL: "https://blastexplorer.io",
+        },
+      },
     ],
   },
   networks: {
@@ -29,6 +39,11 @@ const config: HardhatUserConfig = {
       timeout: 1000000,
       gas: 8000000,
       gasPrice: 8000000000,
+    },
+    blast: {
+      url: "https://rpc.blast.io",
+      accounts: [privateKey],
+      gasPrice: 1000000000,
     },
     blast_sepolia: {
       url: "https://sepolia.blast.io",
