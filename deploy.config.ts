@@ -35,10 +35,15 @@ export let deployConfig = {
     toddlerSaleBcnPrice: ethers.parseEther("50"),
 
     //Kidos
-    kidosMintPrice: ethers.parseEther("0.0003"),
-    kidosTicketsCount: 10000,
+    kidosNftName: "kiDDoS404",
+    kidosNftSymbol: "KID",
+    kidosNftImage: "ipfs://QmakJJkSR3jM7JcDVtsSYxaG63sQsbJ4wkHoeP2Drcxz6Y",
+    kidosRewardMgr: "0x8C07e7c7bfCCAC4d0B06938F5889e3621626FeFa",
+    kidosNftMax: 5000,
+    kidosTicketsCount: 2000,
     kidosMaxMintNfts: 10,
-    kidosRewardMgr: "0x769E939c3B807523058953F259b355f6CcBF1bCb",
+    kidosMintPrice: ethers.parseEther("0.04"),
+    kidosDropPrice: ethers.parseEther("0.02"),
 
     //Weed Farm
     activationPrice: ethers.parseEther("1"),

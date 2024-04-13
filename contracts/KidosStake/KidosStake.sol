@@ -118,15 +118,15 @@ contract KidosStake is Ownable, IERC721Receiver {
     function _claim(uint256 tokenId_) internal {
         uint256 reward = rewardToClaim(tokenId_);
         if (reward > 0) {
+            uint256 timePassed = block.timestamp - _claimedTime[tokenId_];
+            uint256 unclaimedTime = timePassed % stakePeriod;
+            _claimedTime[tokenId_] = block.timestamp - unclaimedTime;
+
             rewardToken.transferFrom(
                 rewardManager,
                 msg.sender,
                 reward
             );
-
-            uint256 timePassed = block.timestamp - _claimedTime[tokenId_];
-            uint256 unclaimedTime = timePassed % stakePeriod;
-            _claimedTime[tokenId_] = block.timestamp - unclaimedTime;
         }
     }
 

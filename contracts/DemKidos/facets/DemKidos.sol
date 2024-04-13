@@ -123,6 +123,10 @@ contract DemKidos is IERC404, Modifiers {
         return s.tokenUri;
     }
 
+    function setTokenURI(string memory uri_) external onlyOwner {
+        s.tokenUri = uri_;
+    }
+
     /// @notice Function for token approvals
     /// @dev This function assumes the operator is attempting to approve
     ///      an ERC-721 if valueOrId_ is a possibly valid ERC-721 token id.

@@ -26,6 +26,7 @@ contract InitDiamond {
 
         uint256 maxMintNfts;
         uint256 mintPrice;
+        uint256 dropPrice;
     }
 
     function init(Args memory args_) external {
@@ -49,6 +50,7 @@ contract InitDiamond {
 
         s.maxMintNfts = args_.maxMintNfts;
         s.mintPrice = args_.mintPrice;
+        s.dropPrice = args_.dropPrice;
 
         initWlBitmap();
     }

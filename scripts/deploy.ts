@@ -18,7 +18,9 @@ export async function main(
   if (tests == true) {
     cfg = testCfg;
   }
-  const rewardManagerAddr = tests ? await rewardManager.getAddress() : cfg.kidosRewardMgr;
+  const rewardManagerAddr = tests
+    ? await rewardManager.getAddress()
+    : cfg.kidosRewardMgr;
 
   const dbnAddress = await demBaconDeploy();
   const safeAddress = await deploySafe();
@@ -32,6 +34,7 @@ export async function main(
     //await deployModeRoot();
   } else {
     await deployModeChild();
+    await deployKidos();
   }
 
   LOG(`> Total gas used: ${strDisplay(totalGasUsed)}`);
@@ -86,8 +89,6 @@ export async function main(
 
   async function deployModeChild() {
     const [
-      demKidosArgs,
-      kidosDropArgs,
       growerNftArgs,
       growerSaleArgs,
       toddlerNftArgs,
@@ -100,8 +101,6 @@ export async function main(
       farmRaidArgs,
       VRFConsumerArgs,
     ] = await deployFacets(
-      "DemKidos",
-      "KidosDrop",
       "DemNft",
       "SaleFacet",
       "DemNft",
@@ -115,22 +114,6 @@ export async function main(
       "VRFConsumer",
     );
 
-    kidosAddress = await deployDiamond(
-      "Kidos",
-      "contracts/DemKidos/InitDiamond.sol:InitDiamond",
-      [demKidosArgs, kidosDropArgs],
-      [
-        [
-          cfg.toddlerNftName,
-          cfg.toddlerNftSymbol,
-          cfg.toddlerNftImage,
-          rewardManagerAddr,
-          cfg.kidosTicketsCount,
-          cfg.kidosMaxMintNfts,
-          cfg.kidosMintPrice,
-        ],
-      ],
-    );
     growerAddress = await deployDiamond(
       "Grower DemNft",
       "contracts/DemNft/InitDiamond.sol:InitDiamond",
@@ -188,27 +171,6 @@ export async function main(
       ),
     );
 
-    {
-      const demKidos = await ethers.getContractAt(
-        "DemKidos",
-        kidosAddress,
-        accounts[0],
-      );
-      {
-        const tx = await (await demKidos.initMintSupply(cfg.toddlerNftMax)).wait();
-        LOG(`>> demKidos initMintSupply gas used: ${strDisplay(tx.gasUsed)}`);
-        totalGasUsed += tx.gasUsed;
-      }
-      if (tests) { //Set approve with RewardManager when not test deploy!
-        const tx = await (
-          await demKidos
-            .connect(accounts[1])
-            .erc20Approve(kidosAddress, ethers.MaxUint256)
-        ).wait();
-        LOG(`>> demKidos erc20Approve gas used: ${strDisplay(tx.gasUsed)}`);
-        totalGasUsed += tx.gasUsed;
-      }
-    }
     {
       const demRebelSale = await ethers.getContractAt(
         "PreSaleFacet",
@@ -319,6 +281,55 @@ export async function main(
       totalGasUsed += tx.gasUsed;
 
       linkAddress = link;
+    }
+  }
+
+  async function deployKidos() {
+    const [demKidosArgs, kidosDropArgs] = await deployFacets(
+      "DemKidos",
+      "KidosDrop",
+    );
+
+    kidosAddress = await deployDiamond(
+      "Kidos",
+      "contracts/DemKidos/InitDiamond.sol:InitDiamond",
+      [demKidosArgs, kidosDropArgs],
+      [
+        [
+          cfg.kidosNftName,
+          cfg.kidosNftSymbol,
+          cfg.kidosNftImage,
+          rewardManagerAddr,
+          cfg.kidosTicketsCount,
+          cfg.kidosMaxMintNfts,
+          cfg.kidosMintPrice,
+          cfg.kidosDropPrice,
+        ],
+      ],
+    );
+    {
+      const demKidos = await ethers.getContractAt(
+        "DemKidos",
+        kidosAddress,
+        accounts[0],
+      );
+      {
+        const tx = await (
+          await demKidos.initMintSupply(cfg.kidosNftMax)
+        ).wait();
+        LOG(`>> demKidos initMintSupply gas used: ${strDisplay(tx.gasUsed)}`);
+        totalGasUsed += tx.gasUsed;
+      }
+      if (tests) {
+        //Set approve with RewardManager when not test deploy!
+        const tx = await (
+          await demKidos
+            .connect(accounts[1])
+            .erc20Approve(kidosAddress, ethers.MaxUint256)
+        ).wait();
+        LOG(`>> demKidos erc20Approve gas used: ${strDisplay(tx.gasUsed)}`);
+        totalGasUsed += tx.gasUsed;
+      }
     }
   }
 

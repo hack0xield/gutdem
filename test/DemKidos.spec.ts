@@ -7,7 +7,7 @@ import { deployConfig as testCfg } from "../deploy-test.config";
 
 import * as utils from "../scripts/deploy";
 
-describe("DemKidos Test", async () => {
+describe.only("DemKidos Test", async () => {
   const FacetCutAction = {
     Add: 0,
     Replace: 1,
@@ -141,6 +141,7 @@ describe("DemKidos Test", async () => {
           testCfg.kidosTicketsCount,
           testCfg.kidosMaxMintNfts,
           testCfg.kidosMintPrice,
+          testCfg.kidosDropPrice,
         ],
       ],
     );
@@ -231,6 +232,7 @@ describe("DemKidos Test", async () => {
           testCfg.kidosTicketsCount,
           testCfg.kidosMaxMintNfts,
           testCfg.kidosMintPrice,
+          testCfg.kidosDropPrice,
         ],
       ],
     );
