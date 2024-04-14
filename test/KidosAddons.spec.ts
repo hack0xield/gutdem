@@ -78,7 +78,7 @@ describe.only("DemKidos Drop and Mint Test", async () => {
       expect((await tx.wait()).status).to.be.equal(1);
     }
 
-    const ticketNumber = testCfg.kidosTicketsCount + 47;
+    const ticketNumber = testCfg.kidosTicketsCount + 239;
     const amount = ethers.parseEther("5000");
     const msg = ethers.solidityPackedKeccak256(
       ["address", "uint256", "uint256"],

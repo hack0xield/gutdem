@@ -7,7 +7,7 @@ import { deployConfig as testCfg } from "../deploy-test.config";
 
 import * as utils from "../scripts/deploy";
 
-describe.only("DemKidos Test", async () => {
+describe("DemKidos Test", async () => {
   const FacetCutAction = {
     Add: 0,
     Replace: 1,
