@@ -111,4 +111,12 @@ contract KidosDrop is Modifiers {
         (bool success, ) = msg.sender.call{value: balance}("");
         require(success, "KidosDrop: Withdraw failed");
     }
+
+    function initWlBitmap(uint256 ticketsCount) external onlyOwner {
+        // Init whitelistDrop bitmap
+        uint256 bucketsCount = ticketsCount / 256 + 1;
+        for (uint bucket = 0; bucket < bucketsCount; ++bucket) {
+            s.wlBitMap._data[bucket] = type(uint256).max;
+        }
+    }
 }

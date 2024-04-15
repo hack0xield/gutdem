@@ -40,7 +40,7 @@ export let deployConfig = {
     kidosNftImage: "ipfs://QmakJJkSR3jM7JcDVtsSYxaG63sQsbJ4wkHoeP2Drcxz6Y",
     kidosRewardMgr: "0x8C07e7c7bfCCAC4d0B06938F5889e3621626FeFa",
     kidosNftMax: 5000,
-    kidosTicketsCount: 10000,
+    kidosTicketsCount: 40000,
     kidosMaxMintNfts: 10,
     kidosMintPrice: ethers.parseEther("0.04"),
     kidosDropPrice: ethers.parseEther("0.02"),
