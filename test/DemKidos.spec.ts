@@ -5,7 +5,7 @@ import { helpers } from "./shared/helpers";
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { deployConfig as testCfg } from "../deploy-test.config";
 
-import * as utils from "../scripts/deploy";
+import * as utils from "../scripts/deploy_full";
 
 describe("DemKidos Test", async () => {
   const FacetCutAction = {

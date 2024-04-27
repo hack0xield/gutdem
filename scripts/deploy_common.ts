@@ -1,19 +1,25 @@
 import { ethers } from "hardhat";
 import { strDisplay } from "./shared/utils";
+import { DeployInfra as infra } from "./shared/deployInfra";
+import { DeployedContracts } from "./deploy_full";
 import { deployConfig as cfg } from "../deploy.config";
 import { deployConfig as testCfg } from "../deploy-test.config";
 
 export async function main(
   isRoot: boolean,
   tests: boolean,
+  gas: { totalGasUsed: BigInt },
 ): Promise<[DeployedContracts]> {
   const LOG = !tests ? console.log.bind(console) : function () {};
-  let totalGasUsed = 0n;
   const accounts = await ethers.getSigners();
   const account = await accounts[0].getAddress();
   const rewardManager = accounts[1];
 
-  LOG(`> Using account as owner: ${account}`);
+  infra.LOG = LOG;
+  infra.gas = gas;
+
+  LOG("");
+  LOG(`> Common Deploy: account owner: ${account}`);
 
   if (tests == true) {
     cfg = testCfg;
@@ -24,8 +30,7 @@ export async function main(
 
   const dbnAddress = await demBaconDeploy();
   const safeAddress = await deploySafe();
-  let kidosAddress,
-    growerAddress,
+  let growerAddress,
     toddlerAddress,
     demRebelAddress,
     gameAddress,
@@ -34,16 +39,14 @@ export async function main(
     //await deployModeRoot();
   } else {
     await deployModeChild();
-    await deployKidos();
   }
 
-  LOG(`> Total gas used: ${strDisplay(totalGasUsed)}`);
+  LOG(`> Total gas used: ${strDisplay(gas.totalGasUsed)}`);
 
   const result = new DeployedContracts({
     demBacon: dbnAddress,
     demRebel: demRebelAddress,
     game: gameAddress,
-    kidos: kidosAddress,
     growerDemNft: growerAddress,
     toddlerDemNft: toddlerAddress,
     safe: safeAddress,
@@ -54,9 +57,9 @@ export async function main(
   //   async function deployModeRoot() {
   //     const tunnel = tests ? "MockRootTunnel" : "RootTunnel";
   //     const [demRebelArgs, preSaleFacetArgs, bridgeArgs, tunnelArgs] =
-  //       await deployFacets("DemRebel", "PreSaleFacet", "ChainBridge", tunnel);
+  //       await infra.deployFacets("DemRebel", "PreSaleFacet", "ChainBridge", tunnel);
   //
-  //     demRebelAddress = await deployDiamond(
+  //     demRebelAddress = await infra.deployDiamond(
   //       "DemRebelDiamond",
   //       "contracts/DemRebel/InitDiamond.sol:InitDiamond",
   //       [demRebelArgs, preSaleFacetArgs, bridgeArgs, tunnelArgs],
@@ -71,7 +74,7 @@ export async function main(
   //       );
   //       const tx = await (await demRebelSale.setRewardManager(account)).wait();
   //       LOG(`>> demRebel setRewardManager gas used: ${strDisplay(tx.gasUsed)}`);
-  //       totalGasUsed += tx.gasUsed;
+  //       gas.totalGasUsed += tx.gasUsed;
   //     }
   //     {
   //       const tunnelFacet = await ethers.getContractAt(
@@ -83,7 +86,7 @@ export async function main(
   //         await tunnelFacet.initializeRoot(cfg.fxRoot, cfg.fxCheckpointManager)
   //       ).wait();
   //       LOG(`>> initializeRoot gas used: ${strDisplay(tx.gasUsed)}`);
-  //       totalGasUsed += tx.gasUsed;
+  //       gas.totalGasUsed += tx.gasUsed;
   //     };
   //   }
 
@@ -100,7 +103,7 @@ export async function main(
       rebelFarmArgs,
       farmRaidArgs,
       VRFConsumerArgs,
-    ] = await deployFacets(
+    ] = await infra.deployFacets(
       "DemNft",
       "SaleFacet",
       "DemNft",
@@ -114,9 +117,10 @@ export async function main(
       "VRFConsumer",
     );
 
-    growerAddress = await deployDiamond(
+    growerAddress = await infra.deployDiamond(
       "Grower DemNft",
       "contracts/DemNft/InitDiamond.sol:InitDiamond",
+      account,
       [growerNftArgs, growerSaleArgs],
       [
         [
@@ -130,9 +134,10 @@ export async function main(
         ],
       ],
     );
-    toddlerAddress = await deployDiamond(
+    toddlerAddress = await infra.deployDiamond(
       "Toddler DemNft",
       "contracts/DemNft/InitDiamond.sol:InitDiamond",
+      account,
       [toddlerNftArgs, toddlerSaleArgs],
       [
         [
@@ -146,15 +151,17 @@ export async function main(
         ],
       ],
     );
-    demRebelAddress = await deployDiamond(
+    demRebelAddress = await infra.deployDiamond(
       "DemRebelDiamond",
       "contracts/DemRebel/InitDiamond.sol:InitDiamond",
+      account,
       [demRebelArgs, preSaleFacetArgs],
       buildRebelArgs(),
     );
-    gameAddress = await deployDiamond(
+    gameAddress = await infra.deployDiamond(
       "GameDiamond",
       "contracts/Game/InitDiamond.sol:InitDiamond",
+      account,
       [
         cashOutArgs,
         gameManagerArgs,
@@ -179,7 +186,7 @@ export async function main(
       );
       const tx = await (await demRebelSale.setRewardManager(account)).wait();
       LOG(`>> demRebel setRewardManager gas used: ${strDisplay(tx.gasUsed)}`);
-      totalGasUsed += tx.gasUsed;
+      gas.totalGasUsed += tx.gasUsed;
     }
     {
       const demNftSale = await ethers.getContractAt(
@@ -189,7 +196,7 @@ export async function main(
       );
       const tx = await (await demNftSale.setRewardManager(account)).wait();
       LOG(`>> grower setRewardManager gas used: ${strDisplay(tx.gasUsed)}`);
-      totalGasUsed += tx.gasUsed;
+      gas.totalGasUsed += tx.gasUsed;
     }
     {
       const demNftSale = await ethers.getContractAt(
@@ -199,7 +206,7 @@ export async function main(
       );
       const tx = await (await demNftSale.setRewardManager(account)).wait();
       LOG(`>> toddler setRewardManager gas used: ${strDisplay(tx.gasUsed)}`);
-      totalGasUsed += tx.gasUsed;
+      gas.totalGasUsed += tx.gasUsed;
     }
 
     {
@@ -213,19 +220,20 @@ export async function main(
           await gameFacet.connect(accounts[0]).addGameManagers([account])
         ).wait();
         LOG(`>> gameFacet addGameManagers gas used: ${strDisplay(tx.gasUsed)}`);
-        totalGasUsed += tx.gasUsed;
+        gas.totalGasUsed += tx.gasUsed;
       }
-      if (!tests) {
-        const tx = await (
-          await gameFacet.connect(accounts[0]).configureBlastYield()
-        ).wait();
-        LOG(
-          `>> gameFacet configureBlastYield gas used: ${strDisplay(
-            tx.gasUsed,
-          )}`,
-        );
-        totalGasUsed += tx.gasUsed;
-      }
+      //TODO
+      //       if (!tests) {
+      //         const tx = await (
+      //           await gameFacet.connect(accounts[0]).configureBlastYield()
+      //         ).wait();
+      //         LOG(
+      //           `>> gameFacet configureBlastYield gas used: ${strDisplay(
+      //             tx.gasUsed,
+      //           )}`,
+      //         );
+      //         gas.totalGasUsed += tx.gasUsed;
+      //       }
     }
     {
       const safeContract = await ethers.getContractAt(
@@ -237,7 +245,7 @@ export async function main(
         await safeContract.connect(accounts[0]).setGameContract(gameAddress)
       ).wait();
       LOG(`>> Safe setGameContract gas used: ${strDisplay(tx.gasUsed)}`);
-      totalGasUsed += tx.gasUsed;
+      gas.totalGasUsed += tx.gasUsed;
     }
     {
       let vrfCoordinator;
@@ -274,62 +282,13 @@ export async function main(
         await vrf.connect(accounts[0]).setVrfCoordinator(vrfCoordinator)
       ).wait();
       LOG(`>> setVrfCoordinator gas used: ${strDisplay(tx.gasUsed)}`);
-      totalGasUsed += tx.gasUsed;
+      gas.totalGasUsed += tx.gasUsed;
 
       tx = await (await vrf.connect(accounts[0]).setLinkAddress(link)).wait();
       LOG(`>> setLinkAddress gas used: ${strDisplay(tx.gasUsed)}`);
-      totalGasUsed += tx.gasUsed;
+      gas.totalGasUsed += tx.gasUsed;
 
       linkAddress = link;
-    }
-  }
-
-  async function deployKidos() {
-    const [demKidosArgs, kidosDropArgs] = await deployFacets(
-      "DemKidos",
-      "KidosDrop",
-    );
-
-    kidosAddress = await deployDiamond(
-      "Kidos",
-      "contracts/DemKidos/InitDiamond.sol:InitDiamond",
-      [demKidosArgs, kidosDropArgs],
-      [
-        [
-          cfg.kidosNftName,
-          cfg.kidosNftSymbol,
-          cfg.kidosNftImage,
-          rewardManagerAddr,
-          cfg.kidosTicketsCount,
-          cfg.kidosMaxMintNfts,
-          cfg.kidosMintPrice,
-          cfg.kidosDropPrice,
-        ],
-      ],
-    );
-    {
-      const demKidos = await ethers.getContractAt(
-        "DemKidos",
-        kidosAddress,
-        accounts[0],
-      );
-      {
-        const tx = await (
-          await demKidos.initMintSupply(cfg.kidosNftMax)
-        ).wait();
-        LOG(`>> demKidos initMintSupply gas used: ${strDisplay(tx.gasUsed)}`);
-        totalGasUsed += tx.gasUsed;
-      }
-      if (tests) {
-        //Set approve with RewardManager when not test deploy!
-        const tx = await (
-          await demKidos
-            .connect(accounts[1])
-            .erc20Approve(kidosAddress, ethers.MaxUint256)
-        ).wait();
-        LOG(`>> demKidos erc20Approve gas used: ${strDisplay(tx.gasUsed)}`);
-        totalGasUsed += tx.gasUsed;
-      }
     }
   }
 
@@ -342,11 +301,11 @@ export async function main(
 
     LOG(`>> demBacon address: ${receipt.contractAddress}`);
     LOG(`>> demBacon deploy gas used: ${strDisplay(receipt.gasUsed)}`);
-    totalGasUsed += receipt.gasUsed;
+    gas.totalGasUsed += receipt.gasUsed;
 
     const tx = await (await deployedDbn.setRewardManager(account)).wait();
     LOG(`>> demBacon setRewardManager gas used: ${strDisplay(tx.gasUsed)}`);
-    totalGasUsed += tx.gasUsed;
+    gas.totalGasUsed += tx.gasUsed;
 
     return receipt.contractAddress;
   }
@@ -360,96 +319,7 @@ export async function main(
 
     LOG(`>> Safe address: ${receipt.contractAddress}`);
     LOG(`>> Safe deploy gas used: ${strDisplay(receipt.gasUsed)}`);
-    totalGasUsed += receipt.gasUsed;
-
-    return receipt.contractAddress;
-  }
-
-  async function deployFacets(...facets: any): Promise<FacetArgs[]> {
-    LOG("");
-
-    const instances: FacetArgs[] = [];
-    for (let facet of facets) {
-      let constructorArgs = [];
-
-      if (Array.isArray(facet)) {
-        [facet, constructorArgs] = facet;
-      }
-
-      const factory = await ethers.getContractFactory(facet);
-      const facetInstance = await factory.deploy(...constructorArgs);
-      await facetInstance.waitForDeployment();
-      const tx = facetInstance.deploymentTransaction();
-      const receipt = await tx.wait();
-
-      instances.push(
-        new FacetArgs(facet, receipt.contractAddress, facetInstance),
-      );
-
-      LOG(`>>> Facet ${facet} deployed: ${receipt.contractAddress}`);
-      LOG(`${facet} deploy gas used: ${strDisplay(receipt.gasUsed)}`);
-      LOG(`Tx hash: ${tx.hash}`);
-
-      totalGasUsed += receipt.gasUsed;
-    }
-
-    LOG("");
-
-    return instances;
-  }
-
-  async function deployDiamond(
-    diamondName: string,
-    initDiamond: string,
-    facets: FacetArgs[],
-    args: any[],
-  ): Promise<string> {
-    let gasCost = 0n;
-
-    const diamondCut = [];
-    for (const facetArg of facets) {
-      diamondCut.push([
-        facetArg.address,
-        FacetCutAction.Add,
-        getSelectors(facetArg.contract),
-      ]);
-    }
-
-    const deployedInitDiamond = await (
-      await ethers.getContractFactory(initDiamond)
-    ).deploy();
-    await deployedInitDiamond.waitForDeployment();
-    let receipt = await deployedInitDiamond.deploymentTransaction().wait();
-    const deployedInitDiamondAddress = receipt.contractAddress;
-    gasCost += receipt.gasUsed;
-
-    const deployedDiamond = await (
-      await ethers.getContractFactory("Diamond")
-    ).deploy(account);
-    await deployedDiamond.waitForDeployment();
-    receipt = await deployedDiamond.deploymentTransaction().wait();
-    gasCost += receipt.gasUsed;
-
-    const diamondCutFacet = await ethers.getContractAt(
-      "DiamondCutFacet",
-      receipt.contractAddress,
-    );
-    const functionCall = deployedInitDiamond.interface.encodeFunctionData(
-      "init",
-      args,
-    );
-    const cutTx = await (
-      await diamondCutFacet.diamondCut(
-        diamondCut,
-        deployedInitDiamondAddress,
-        functionCall,
-      )
-    ).wait();
-    gasCost += cutTx.gasUsed;
-
-    LOG(`>> ${diamondName} diamond address: ${receipt.contractAddress}`);
-    LOG(`>> ${diamondName} diamond deploy gas used: ${strDisplay(gasCost)}`);
-    totalGasUsed += gasCost;
+    gas.totalGasUsed += receipt.gasUsed;
 
     return receipt.contractAddress;
   }
@@ -499,53 +369,11 @@ export async function main(
   }
 }
 
-const FacetCutAction = {
-  Add: 0,
-  Replace: 1,
-  Remove: 2,
-};
-
-function getSelectors(contract: Contract) {
-  const fragments = contract.interface.fragments;
-  return fragments.reduce((acc: string[], val: ethers.Fragment) => {
-    if (ethers.Fragment.isFunction(val)) {
-      acc.push(val.selector);
-    }
-    return acc;
-  }, []);
-}
-
-class FacetArgs {
-  public name: string = "";
-  public address: string;
-  public contract: Contract;
-
-  constructor(name: string, address: string, contract: Contract) {
-    this.name = name;
-    this.contract = contract;
-    this.address = address;
-  }
-}
-
-export class DeployedContracts {
-  public demBacon: string = "";
-  public demRebel: string = "";
-  public game: string = "";
-  public kidos: string = "";
-  public growerDemNft: string = "";
-  public toddlerDemNft: string = "";
-  public safe: string = "";
-  public link: string = "";
-
-  public constructor(init?: Partial<DeployedContracts>) {
-    Object.assign(this, init);
-  }
-}
-
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 if (require.main === module) {
-  main(cfg.isRootChain, false).catch((error) => {
+  const gas = { totalGasUsed: 0n };
+  main(cfg.isRootChain, false, gas).catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });

@@ -1,8 +1,8 @@
 const { ethers } = require("hardhat");
 
 import { Contract, Signer } from 'ethers';
-import { strDisplay } from "./shared/utils";
-import { FacetArgs } from './shared/deployDiamond';
+import { strDisplay } from "../shared/utils";
+import { FacetArgs } from '../shared/deployInfra';
 
 /*
 1. Fill facets list. Fill add/remove selectors, all facet selectors will be updated.
@@ -38,6 +38,7 @@ const facets = [
 ];
 
 const diamondAddress = "0x082E53a6519c5e0EC846D3Dc6eE499011601990A";
+//const diamondAddress = "";
 
 const FacetCutAction = {
     Add: 0,

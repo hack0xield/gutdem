@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { helpers } from "./shared/helpers";
 import { deployConfig as testCfg } from "../deploy-test.config";
 
-import * as utils from "../scripts/deploy";
+import * as utils from "../scripts/deploy_full";
 
 describe("DemRebel PreSaleFacet Test", async () => {
   let preSaleFacet: Contract;

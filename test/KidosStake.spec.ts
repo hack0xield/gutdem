@@ -5,11 +5,11 @@ import { ethers } from "hardhat";
 import { helpers } from "./shared/helpers";
 import { deployConfig as testCfg } from "../deploy-test.config";
 
-import * as utils from "../scripts/deploy";
+import * as utils from "../scripts/deploy_full";
 import * as kidos_stake from "../scripts/deploy_kstake";
 import * as kidos_stake_v2 from "../scripts/deploy_kstake2";
 
-describe.only("KidosStake", async () => {
+describe("KidosStake", async () => {
   let demKidos: Contract;
   let kidosStake: Contract;
   let kidosStakeV2: Contract;

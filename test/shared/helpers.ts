@@ -3,7 +3,7 @@ import { assert, expect } from "chai";
 import { Contract, Signer } from "ethers";
 import { deployConfig as testCfg } from "../../deploy-test.config";
 
-import * as utils from "../../scripts/deploy";
+import * as utils from "../../scripts/deploy_full";
 
 const helpers = {
   purchaseRebels: async (
